@@ -1,0 +1,59 @@
+﻿<html>
+    <head>
+        <title>Android Dojo</title>
+        <link rel="stylesheet" type="text/css" href="css/base.css"/>
+        <link rel="stylesheet" type="text/css" href="css/receiver.css"/>
+        <script src="//www.gstatic.com/cast/sdk/libs/receiver/2.0.0/cast_receiver.js"></script>
+        <script src="js/generic-receiver.js"></script>
+        <script src="js/board.js"></script>
+        <script type="application/javascript">
+            function truncate(number) {
+                number = String(number);
+                return (number.indexOf('.') !== -1) ? number.substr(0, number.indexOf('.') + 2) : number;
+            }
+
+            window.onload = function() {
+                var canvasElement = document.getElementById('canvas');
+                var rotateFeedbackElement = document.getElementById('rotate-feedback');
+                window.board = new Board();
+                window.receiver = new GenericReceiver();
+
+                if(canvasElement) {
+                    board.setCanvas(canvasElement);
+                }
+
+                receiver.addMessageProtocol('fr.francetv.player.dojo-controller');
+                receiver.addEventListener('message', function(message) {
+                    if(message.data.type === 'setAngle') {
+                        var x = message.data.x;
+                        var y = message.data.y;
+
+                        board.setAngle(x, y);
+                        
+                        rotateFeedbackElement.innerHTML = '(' + truncate(x) + ', ' + truncate(y) + ')';
+                    }
+                    else if(message.data.type === 'getAngle') {
+                        var angle = board.getAngle();
+                        castMessageBus.broadcast({
+                            type: 'setAngle',
+                            x: angle.x,
+                            y: angle.y
+                        });
+                    }
+                });
+                board.startRenderLoop();
+                receiver.start();
+            }
+        </script>
+    </head>
+    
+    <body>
+        <canvas id="canvas">
+            html canvas element isn't supported by this browser
+        </canvas>
+        <h1>Receiver</h1>
+        <div id="rotate-feedback">
+        </div>
+        <div id="message"></div>
+    </body>
+</html>

@@ -1,0 +1,68 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="css/base.css"/>
+        <link rel="stylesheet" type="text/css" href="css/sender.css"/>
+        <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
+        <script type="text/javascript" src="js/generic-sender.js"></script>
+        <script type="text/javascript">
+            window.onload = function() {
+                var captureZoneElement = document.getElementById('capture-zone');
+                var rotateFeedbackElement = document.getElementById('rotate-feedback');
+                var launchButton = document.getElementById('launch');
+                var sender = new GenericSender();
+                var updateFromAngle = function(x, y) {
+                    rotateFeedbackElement.style.WebkitTransform = 'rotateX(' + x + 'rad) ' + 'rotateY(' + y + 'rad)';
+                };
+
+                sender.setApplicationId('5B9CAA18');
+                sender.addMessageProtocol('fr.francetv.player.dojo-controller');
+                sender.addEventListener('message', function(message, protocol) {
+                    message = JSON.parse(message);
+                    if(message.type === 'setAngle') {
+                        updateFromAngle(message.x, message.y);
+                    }
+                });
+                sender.addEventListener('sessiondiscovered', function(session) {
+                    sender.setSession(session);
+                });
+                sender.addEventListener('error', function(error) {
+                    console.log(error);
+                })
+                sender.start();
+                
+
+                launchButton.addEventListener('click', function(event) {
+                    sender.requestSession();
+                });
+
+                captureZoneElement.addEventListener('mousemove', function(event) {
+                    if(sender.getSession()) {
+                        var x = event.clientX - captureZoneElement.offsetLeft;
+                        var y = event.clientY - captureZoneElement.offsetTop;
+                        var yAngle = -((x / captureZoneElement.offsetWidth) * Math.PI / 2 - Math.PI / 4);
+                        var xAngle = (y / captureZoneElement.offsetHeight) * Math.PI / 2 - Math.PI / 4;
+
+                        updateFromAngle(xAngle, yAngle);
+
+                        sender.sendMessage(
+                            protocol,
+                            {
+                                type: 'setAngle',
+                                x: xAngle,
+                                y: yAngle,
+                            }
+                        );
+                    }
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <h1>Sender</h1>
+        <div id="rotate-feedback">
+        </div>
+        <div id="capture-zone">
+        </div>
+        <button id="launch">Launch</button>
+    </body>
+</html>
