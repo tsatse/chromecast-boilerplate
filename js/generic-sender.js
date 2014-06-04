@@ -22,6 +22,10 @@
             }
         },
 
+        addEventListener: function addEventListener(eventName, callback) {
+            this._listeners[eventName].push(callback);
+        },
+
         setApplicationId: function setApplicationId(applicationId) {
             this._applicationID = applicationId;
         },
@@ -35,7 +39,7 @@
                 this._listenForProtocol(protocol);
             }
         },
-
+ 
         setSession: function setSession(session) {
             if(this._session) {
                 this._removeCurrentSession();
@@ -49,13 +53,20 @@
             Object.keys(this._protocols).forEach(this._listenForProtocol.bind(this));
         },
 
+        _execEventListeners: function _execEventListeners(eventName) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            this._listeners[eventName].forEach(function(callback) { 
+                callback.apply(callback, args);
+            });
+        },
+
         sendMessage: function sendMessage(protocol, message, whenSent) {
             if(this._session) {
                 this._session.sendMessage(
-                    protocol,
+                    'urn:x-cast:' + protocol,
                     message,
                     whenSent,
-                    this._execListeners.bind(this, 'error')
+                    this._execEventListeners.bind(this, 'error')
                 );
             }
             else {
@@ -67,7 +78,7 @@
             chrome.cast.requestSession(
                 this._sessionDiscovered.bind(this),
                 function(error) {
-                    this._execListeners('error', error);
+                    this._execEventListeners('error', error.code);
                 }.bind(this)
             );
         },
@@ -83,14 +94,14 @@
         _listenForProtocol: function _listenForProtocol(protocol) {
             if(this._session) {
                 this._protocols[protocol] = function(protocol, message) {
-                    this._execListeners('message', message, protocol);
+                    this._execEventListeners('message', message, protocol);
                 }.bind(this);
                 this._session.addMessageListener('urn:x-cast:' + protocol, this._protocols[protocol]);
             }
         },
 
         _sessionDiscovered: function _sessionDiscovered(session) {
-            this._execListeners('sessiondiscovered')
+            this._execEventListeners('sessiondiscovered', session);
         },
 
         _initializeCastApi: function _initializeCastApi() {
@@ -101,12 +112,12 @@
                 this._sessionDiscovered.bind(this),
                 function(event) {
                     if(event === chrome.cast.ReceiverAvailability.AVAILABLE) {
-                        this._execListeners('receiveravailable');
+                        this._execEventListeners('receiveravailable');
                     }
                     else {
-                        this._execListeners('receiverunavailable');
+                        this._execEventListeners('receiverunavailable');
                     }
-                }
+                }.bind(this) 
             );
             chrome.cast.initialize(
                 apiConfig,

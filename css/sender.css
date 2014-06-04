@@ -1,9 +1,9 @@
 #capture-zone {
 	background: #eee;
+    width: 500px;
+    height: 500px;
 }
 
 #rotate-feedback {
     border: 1px solid #448;
-    width: 100px;
-    height: 100px;
 }

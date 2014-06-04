@@ -8,6 +8,10 @@
             window.onload = function() {
                 var captureZoneElement = document.getElementById('capture-zone');
                 var rotateFeedbackElement = document.getElementById('rotate-feedback');
+                var protocol = 'fr.francetv.player.dojo-controller';
+                rotateFeedbackElement.style.width = '100px';
+                rotateFeedbackElement.style.height = '100px';
+
                 var launchButton = document.getElementById('launch');
                 var sender = new GenericSender();
                 var updateFromAngle = function(x, y) {
@@ -15,7 +19,7 @@
                 };
 
                 sender.setApplicationId('5B9CAA18');
-                sender.addMessageProtocol('fr.francetv.player.dojo-controller');
+                sender.addMessageProtocol(protocol);
                 sender.addEventListener('message', function(message, protocol) {
                     message = JSON.parse(message);
                     if(message.type === 'setAngle') {

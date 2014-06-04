@@ -1,4 +1,8 @@
-# disclaimer
+I have yet to write unit tests for this but at least I tested it myself.
 
-I've just created these classes out of a working but spaghetti code.
-I haven't tested if it still works yet :P
+this repo contains :
+
+- a generic chromecast receiver
+- a generic chromecast sender
+- some manual testing code
+
